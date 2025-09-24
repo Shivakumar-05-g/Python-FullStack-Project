@@ -2,11 +2,6 @@
 
 An E-Ticket Booking System is a software application that allows users to book tickets for events like concerts, movies, or sports matches online. Users can create accounts, browse available events, select seats, and make bookings from anywhere using their computer or phone. The system keeps track of available seats to avoid double bookings and generates digital tickets that users can use to enter the event. Payments can be handled securely online. This system makes ticket buying easy, fast, and paperless.
 
-Events table (event_id, event_name, venue, date, total_seats, seats_available)
-
-Bookings table (booking_id, user_id, event_id, seats_booked, booking_time)
-
-
 
 ## Features
 
@@ -70,8 +65,8 @@ pip install -r requirements.txt
 dashboard
 - Run this 
 
-```sql
 
+```
 CREATE TABLE Events (
   event_id SERIAL PRIMARY KEY,
   event_name VARCHAR(255) NOT NULL,
@@ -90,6 +85,56 @@ CREATE TABLE Bookings (
   booking_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (event_id) REFERENCES Events(event_id)
 );
+```
+
+## 4.configure Environmental Variables
+
+1. create a `.env` file in the project root
+
+Add supabase credentials to `.env`:
+SUPABASE_URL=your_projrct_url_here
+SUPABASE_KEY=your_anon_key_here
+
+***Example***
+SUPABASE_URL=`https://cwvxpvuxdgkwkqasmqwf.supabase.co`
+SUBABASE_KEY=`eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN3dnhwdnV4ZGdrd2txYXNtcXdmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgwODI1NTQsImV4cCI6MjA3MzY1ODU1NH0.MfIHah_AF3wrqCwoG6k5F9plauxx2QX-1XwG-Fp7gSY`
 
 
-```sql
+### 5. Run the Application 
+
+## Streamlit Frontend
+
+streamlit run frontend/app.py
+
+The app will open in your browser at `http://localhost:8051 `
+
+## How to use 
+
+## Technical Details
+
+## Technologies Used
+
+- **Frontend**: Streamlit (Python web framework)
+- **Backend**: FastAPI (python Rest API Framework)
+- **Language**: Python 3.8+
+
+### Key Components
+
+1.**`src/db.py`**:Database Operations Handles all CRUD operations with supabase
+
+2.**`src/logic.py`**:Business logic Task Validation and processing
+
+
+### TroubleShooting
+
+### Common Issues
+
+### Feature Enhancement
+
+
+### support
+If you Encounter any Issues or have Questions:
+
+- **Phone Number**:`8185938735`
+- **Email**:'gorigeshivakumar8@gmail.com
+
