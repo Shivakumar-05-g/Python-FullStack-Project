@@ -11,54 +11,80 @@ key=os.getenv("SUPABASE_KEY")
 
 supabase=create_client(url, key)
 
-#create events
-def create_event(event_name, venue, date, total_seats, seats_available):
-    return supabase.table("events").insert({
-        "event_name": event_name,
-        "venue": venue,
-        "date": date,
-        "total_seats": total_seats,
-        "seats_available": seats_available
-    }).execute()
+class DatabaseManager:
+	
+	#create task
+	def create_task(title, description, due_date, priority ,completed):
+		return supabase.table("Tasks").insert({
+		"title":title, 
+		"description":description, 
+		"due_date":due_date, 
+		"priority":priority, 
+		"completed":False
+		}).execute()
+		
 
-#get all events
-def get_all_events():
-    return supabase.table("events").select("*").order("date").execute()
+	#get all tasks
+	def get_all_tasks():
+		return supabase.table("Tasks").select("*").order("due_date").execute()
 
-#update events
-def update_event_seats(event_id, seats_available):
-    return supabase.table("events").update({
-        "seats_available": seats_available
-    }).eq("id", event_id).execute()
-
-#delete events
-def delete_event(event_id):
-    return supabase.table("events").delete().eq("id", event_id).execute()
+	#update task status
+	def update_task(task_id, completed):
+		return supabase.table("Tasks").update({"completed":completed}).eq("id", task_id).execute()
 
 
-#create bookings
-def create_booking(user_name, user_email, event_id, seats_booked, booking_time=None):
-    if booking_time is None:
-        booking_time = datetime.isoformat()
-    
-    return supabase.table("bookings").insert({
-        "user_name": user_name,
-        "user_email": user_email,
-        "event_id": event_id,
-        "seats_booked": seats_booked,
-        "booking_time": booking_time
-    }).execute()
+	#delete task
+	def delete_task(task_id):
+		return supabase.table("Tasks").delete().eq("id", task_id).execute()
 
-#get all bookings
-def get_all_bookings():
-    return supabase.table("bookings").select("*").execute()
+	#create events
+	def create_event(event_name, venue, date, total_seats, seats_available):
+		return supabase.table("Events").insert({
+			"event_name": event_name,
+			"venue": venue,
+			"date": date,
+			"total_seats": total_seats,
+			"seats_available": seats_available
+		}).execute()
 
-#update bookings
-def update_booking(booking_id, seats_booked):
-    return supabase.table("bookings").update({
-        "seats_booked": seats_booked
-    }).eq("id", booking_id).execute()
+	#get all events
+	def get_all_events():
+		return supabase.table("Events").select("*").order("date").execute()
 
-#delete bookings
-def delete_booking(booking_id):
-    return supabase.table("bookings").delete().eq("id", booking_id).execute()
+	#update events
+	def update_event_seats(event_id, seats_available):
+		return supabase.table("Events").update({
+			"seats_available": seats_available
+		}).eq("id", event_id).execute()
+
+	#delete events
+	def delete_event(event_id):
+		return supabase.table("Events").delete().eq("id", event_id).execute()
+
+
+	#create bookings
+	def create_booking(user_name, user_email, event_id, seats_booked, booking_time=None):
+		if booking_time is None:
+			booking_time = datetime.isoformat()
+		
+		return supabase.table("Bookings").insert({
+			"user_name": user_name,
+			"user_email": user_email,
+			"event_id": event_id,
+			"seats_booked": seats_booked,
+			"booking_time": booking_time
+		}).execute()
+
+	#get all bookings
+	def get_all_bookings():
+		return supabase.table("Bookings").select("*").execute()
+
+	#update bookings
+	def update_booking(booking_id, seats_booked):
+		return supabase.table("Bookings").update({
+			"seats_booked": seats_booked
+		}).eq("id", booking_id).execute()
+
+	#delete bookings
+	def delete_booking(booking_id):
+		return supabase.table("Bookings").delete().eq("id", booking_id).execute()

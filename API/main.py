@@ -1,93 +1,157 @@
-from fastapi import FastAPI, HTTPException, Depends
-from pydantic import BaseModel
-from typing import List, Optional
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware  
+from pydantic import BaseModel, EmailStr
+import sys
+import os
 
-app = FastAPI()
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from src.logic import TaskManager, EventManager, BookingManager
 
-# Mock database
-users = {}
-events = {
-	1: {
-		"name": "Concert A",
-		"seats": {str(i): None for i in range(1, 51)}  # 50 seats
-	}
-}
-bookings = []
+app = FastAPI(title="Student Task & Event Manager", version="1.0")
 
-# Models
-class User(BaseModel):
-	username: str
-	password: str
-	is_admin: bool = False
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-class LoginRequest(BaseModel):
-	username: str
-	password: str
+task_manager = TaskManager()
+event_manager = EventManager()
+booking_manager = BookingManager()  
 
-class RegisterRequest(BaseModel):
-	username: str
-	password: str
+# --- Models ---
+class TaskCreate(BaseModel):
+    title: str
+    description: str
+    due_date: str
+    priority: str
 
-class PaymentRequest(BaseModel):
-	username: str
-	event_id: int
-	seat: str
-	amount: float
+class TaskUpdate(BaseModel):
+    completed: bool
 
-class Booking(BaseModel):
-	username: str
-	event_id: int
-	seat: str
+class EventCreate(BaseModel):
+    event_name: str
+    venue: str
+    date: str
+    total_seats: int
 
-# Authentication endpoints
-@app.post("/register")
-def register(req: RegisterRequest):
-	if req.username in users:
-		raise HTTPException(status_code=400, detail="User already exists")
-	users[req.username] = {"password": req.password, "is_admin": False}
-	return {"message": "Registered successfully"}
+class BookingCreate(BaseModel):
+    user_name: str
+    user_email: EmailStr
+    event_id: int
+    seats_booked: int
 
-@app.post("/login")
-def login(req: LoginRequest):
-	user = users.get(req.username)
-	if not user or user["password"] != req.password:
-		raise HTTPException(status_code=401, detail="Invalid credentials")
-	return {"message": "Login successful", "is_admin": user["is_admin"]}
+class BookingUpdate(BaseModel):
+    seats_booked: int
 
-# Seat selection
-@app.get("/events/{event_id}/seats")
-def get_seats(event_id: int):
-	event = events.get(event_id)
-	if not event:
-		raise HTTPException(status_code=404, detail="Event not found")
-	return event["seats"]
+# --- TASKS ---
+@app.get("/tasks")
+def get_tasks():
+    result = task_manager.get_tasks()
+    if not result["success"]:
+        raise HTTPException(status_code=500, detail=result["message"])
+    return result
 
-# Payment (mock)
-@app.post("/pay")
-def pay(req: PaymentRequest):
-	event = events.get(req.event_id)
-	if not event:
-		raise HTTPException(status_code=404, detail="Event not found")
-	if event["seats"][req.seat] is not None:
-		raise HTTPException(status_code=400, detail="Seat already booked")
-	# Mock payment success
-	event["seats"][req.seat] = req.username
-	bookings.append({"username": req.username, "event_id": req.event_id, "seat": req.seat})
-	return {"message": "Payment successful, seat booked"}
+@app.post("/tasks")
+def create_task(task: TaskCreate):
+    result = task_manager.add_task(task.title, task.description, task.due_date, task.priority)
+    if not result["success"]:
+        raise HTTPException(status_code=400, detail=result["message"])
+    return result
 
-# Admin dashboard
-@app.get("/admin/bookings")
-def get_bookings(username: str):
-	user = users.get(username)
-	if not user or not user["is_admin"]:
-		raise HTTPException(status_code=403, detail="Admin access required")
-	return bookings
+@app.put("/tasks/{task_id}") 
+def update_task(task_id: int, task: TaskUpdate):
+    if task.completed:
+        result = task_manager.mark_complete(task_id)
+    else:
+        result = task_manager.mark_pending(task_id) 
+    if not result["success"]:
+        raise HTTPException(status_code=400, detail=result["message"])
+    return result
 
-@app.post("/admin/events")
-def add_event(username: str, name: str, seat_count: int):
-	user = users.get(username)
-	if not user or not user["is_admin"]:
-		raise HTTPException(status_code=403, detail="Admin access required")
-	event_id = max(events.keys()) + 1
-	events[event_id] = {"name": name, "seats": {str(i): None for i in range(1, seat_count + 1)}}
-	return {"message": "Event added", "event_id": event_id}
+@app.delete("/tasks/{task_id}") 
+def delete_task(task_id: int):
+    result = task_manager.delete_task(task_id)
+    if not result["success"]:
+        raise HTTPException(status_code=400, detail=result["message"])
+    return result
+
+# --- EVENTS ---
+@app.get("/events")
+def get_events():
+    result = event_manager.get_events()
+    if not result["success"]:
+        raise HTTPException(status_code=500, detail=result["message"])
+    return result
+
+@app.get("/events/{event_id}")
+def get_event(event_id: int):
+    result = event_manager.get_event(event_id)
+    if not result["success"]:
+        raise HTTPException(status_code=404, detail=result["message"])
+    return result
+
+@app.post("/events")
+def create_event(event: EventCreate):
+    result = event_manager.add_event(event.event_name, event.venue, event.date, event.total_seats)
+    if not result["success"]:
+        raise HTTPException(status_code=400, detail=result["message"])
+    return result
+
+@app.delete("/events/{event_id}")
+def delete_event(event_id: int):
+    result = event_manager.delete_event(event_id)
+    if not result["success"]:
+        raise HTTPException(status_code=400, detail=result["message"])
+    return result
+
+# --- BOOKINGS ---
+@app.get("/bookings")
+def get_all_bookings():
+    result = booking_manager.get_all_bookings()
+    if not result["success"]:
+        raise HTTPException(status_code=500, detail=result["message"])
+    return result
+
+@app.get("/bookings/event/{event_id}")
+def get_bookings_by_event(event_id: int):
+    result = booking_manager.get_bookings_by_event(event_id)
+    if not result["success"]:
+        raise HTTPException(status_code=404, detail=result["message"])
+    return result
+
+@app.post("/bookings")
+def create_booking(booking: BookingCreate):
+    result = booking_manager.book_event(
+        booking.user_name,
+        booking.user_email,
+        booking.event_id,
+        booking.seats_booked
+    )
+    if not result["success"]:
+        raise HTTPException(status_code=400, detail=result["message"])
+    return result
+
+@app.put("/bookings/{booking_id}")
+def update_booking(booking_id: int, update: BookingUpdate):
+    result = booking_manager.update_booking_seats(booking_id, update.seats_booked)
+    if not result["success"]:
+        raise HTTPException(status_code=400, detail=result["message"])
+    return result
+
+@app.delete("/bookings/{booking_id}")
+def delete_booking(booking_id: int):
+    result = booking_manager.delete_booking(booking_id)
+    if not result["success"]:
+        raise HTTPException(status_code=400, detail=result["message"])
+    return result
+
+@app.get("/")
+def home():
+    return {"message": "API is running!"}
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)

@@ -1,3 +1,245 @@
+from src.db import DatabaseManager
+
+class TaskManager:
+    '''
+    Acts as bridge between the frontend (Streamlit/FastAPI) and the database
+    '''
+    def __init__(self):
+        # Create a database manager instance (handles actual DB operations)
+        self.db = DatabaseManager()
+
+    # ======================
+    # TASKS
+    # ======================
+
+    def add_task(self, title, description, due_date, priority="Median"):
+        '''
+        Add a new task to the database
+        Return the success message if the task is added.
+        '''
+        if not title or not description:
+            return {"success": False, "message": "Title and Description are required"}
+        
+        result = self.db.create_task(title, description, due_date, priority)
+        
+        # Supabase returns data on success; check if 'data' exists and is non-empty
+        if result.data:
+            return {"success": True, "message": "Task added successfully"}
+        else:
+            error_msg = str(result.error) if hasattr(result, 'error') else "Unknown error"
+            return {"success": False, "message": f"Error: {error_msg}"}
+
+    def get_tasks(self):
+        '''
+        Get all tasks from the database
+        '''
+        result = self.db.get_all_tasks()
+        if result.data is not None:
+            return {"success": True, "data": result.data}
+        else:
+            error_msg = str(result.error) if hasattr(result, 'error') else "Unknown error"
+            return {"success": False, "message": f"Error: {error_msg}"}
+
+    def mark_complete(self, task_id):
+        '''
+        Mark a task as complete
+        '''
+        result = self.db.update_task(task_id, True)
+        if result.data:
+            return {"success": True, "message": "Task marked as complete"}
+        else:
+            error_msg = str(result.error) if hasattr(result, 'error') else "Unknown error"
+            return {"success": False, "message": f"Error: {error_msg}"}
+
+    def mark_pending(self, task_id):
+        '''
+        Mark a task as pending
+        '''
+        result = self.db.update_task(task_id, False)
+        if result.data:
+            return {"success": True, "message": "Task marked as pending"}
+        else:
+            error_msg = str(result.error) if hasattr(result, 'error') else "Unknown error"
+            return {"success": False, "message": f"Error: {error_msg}"}
+
+    def delete_task(self, task_id):
+        '''
+        Delete a task from the database
+        '''
+        result = self.db.delete_task(task_id)
+        if result.data:
+            return {"success": True, "message": "Task deleted successfully"}
+        else:
+            error_msg = str(result.error) if hasattr(result, 'error') else "Unknown error"
+            return {"success": False, "message": f"Error: {error_msg}"}
+
+    # ======================
+    # EVENTS
+    # ======================
+class EventManager:
+
+    def add_event(self, event_name, venue, date, total_seats):
+        '''
+        Add a new event.
+        seats_available is initially set equal to total_seats.
+        '''
+        if not event_name or not venue or not date or total_seats <= 0:
+            return {"success": False, "message": "Invalid event data: all fields required and seats must be > 0"}
+
+        seats_available = total_seats
+        result = self.db.create_event(event_name, venue, date, total_seats, seats_available)
+
+        if result.data:
+            return {"success": True, "message": "Event created successfully"}
+        else:
+            error_msg = str(result.error) if hasattr(result, 'error') else "Unknown error"
+            return {"success": False, "message": f"Error: {error_msg}"}
+
+    def get_events(self):
+        '''
+        Get all events
+        '''
+        result = self.db.get_all_events()
+        if result.data is not None:
+            return {"success": True, "data": result.data}
+        else:
+            error_msg = str(result.error) if hasattr(result, 'error') else "Unknown error"
+            return {"success": False, "message": f"Error: {error_msg}"}
+
+    def get_event(self, event_id):
+        '''
+        Get a single event by ID
+        '''
+        result = self.db.get_event_by_id(event_id)
+        if result.data:
+            return {"success": True, "data": result.data}
+        else:
+            error_msg = str(result.error) if hasattr(result, 'error') else "Event not found"
+            return {"success": False, "message": f"Error: {error_msg}"}
+
+    def delete_event(self, event_id):
+        '''
+        Delete an event
+        '''
+        result = self.db.delete_event(event_id)
+        if result.data:
+            return {"success": True, "message": "Event deleted successfully"}
+        else:
+            error_msg = str(result.error) if hasattr(result, 'error') else "Unknown error"
+            return {"success": False, "message": f"Error: {error_msg}"}
+
+    # ======================
+    # BOOKINGS
+    # ======================
+class BookingManager:
+
+    def book_event(self, user_name, user_email, event_id, seats_booked):
+        '''
+        Create a new booking for an event
+        '''
+        if not user_name or not user_email or not event_id or seats_booked <= 0:
+            return {"success": False, "message": "Invalid booking data"}
+
+        # Optional: Check if event exists and has enough seats (you can add this later)
+        result = self.db.create_booking(user_name, user_email, event_id, seats_booked)
+
+        if result.data:
+            return {"success": True, "message": "Booking created successfully"}
+        else:
+            error_msg = str(result.error) if hasattr(result, 'error') else "Unknown error"
+            return {"success": False, "message": f"Error: {error_msg}"}
+
+    def get_all_bookings(self):
+        '''
+        Get all bookings
+        '''
+        result = self.db.get_all_bookings()
+        if result.data is not None:
+            return {"success": True, "data": result.data}
+        else:
+            error_msg = str(result.error) if hasattr(result, 'error') else "Unknown error"
+            return {"success": False, "message": f"Error: {error_msg}"}
+
+    def get_bookings_by_event(self, event_id):
+        '''
+        Get all bookings for a specific event
+        '''
+        result = self.db.get_bookings_by_event(event_id)
+        if result.data is not None:
+            return {"success": True, "data": result.data}
+        else:
+            error_msg = str(result.error) if hasattr(result, 'error') else "No bookings found"
+            return {"success": False, "message": f"Error: {error_msg}"}
+
+    def update_booking_seats(self, booking_id, seats_booked):
+        '''
+        Update the number of seats in an existing booking
+        '''
+        if seats_booked <= 0:
+            return {"success": False, "message": "Seats booked must be greater than 0"}
+
+        result = self.db.update_booking(booking_id, seats_booked)
+        if result.data:
+            return {"success": True, "message": "Booking updated successfully"}
+        else:
+            error_msg = str(result.error) if hasattr(result, 'error') else "Unknown error"
+            return {"success": False, "message": f"Error: {error_msg}"}
+
+    def delete_booking(self, booking_id):
+        '''
+        Cancel/delete a booking
+        '''
+        result = self.db.delete_booking(booking_id)
+        if result.data:
+            return {"success": True, "message": "Booking deleted successfully"}
+        else:
+            error_msg = str(result.error) if hasattr(result, 'error') else "Unknown error"
+            return {"success": False, "message": f"Error: {error_msg}"}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+'''
 # Business logic functions
 from src.db import users, events, bookings
 
@@ -36,3 +278,4 @@ def add_event(username, name, seat_count):
 	event_id = max(events.keys()) + 1
 	events[event_id] = {"name": name, "seats": {str(i): None for i in range(1, seat_count + 1)}}
 	return True, event_id
+'''
