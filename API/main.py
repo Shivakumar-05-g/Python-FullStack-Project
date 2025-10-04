@@ -5,7 +5,7 @@ import sys
 import os
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from src.logic import TaskManager, EventManager, BookingManager
+from src.logic import  EventManager, BookingManager
 
 app = FastAPI(title="Student Task & Event Manager", version="1.0")
 
@@ -17,19 +17,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-task_manager = TaskManager()
 event_manager = EventManager()
 booking_manager = BookingManager()  
 
 # --- Models ---
-class TaskCreate(BaseModel):
-    title: str
-    description: str
-    due_date: str
-    priority: str
 
-class TaskUpdate(BaseModel):
-    completed: bool
 
 class EventCreate(BaseModel):
     event_name: str
@@ -45,38 +37,6 @@ class BookingCreate(BaseModel):
 
 class BookingUpdate(BaseModel):
     seats_booked: int
-
-# --- TASKS ---
-@app.get("/tasks")
-def get_tasks():
-    result = task_manager.get_tasks()
-    if not result["success"]:
-        raise HTTPException(status_code=500, detail=result["message"])
-    return result
-
-@app.post("/tasks")
-def create_task(task: TaskCreate):
-    result = task_manager.add_task(task.title, task.description, task.due_date, task.priority)
-    if not result["success"]:
-        raise HTTPException(status_code=400, detail=result["message"])
-    return result
-
-@app.put("/tasks/{task_id}") 
-def update_task(task_id: int, task: TaskUpdate):
-    if task.completed:
-        result = task_manager.mark_complete(task_id)
-    else:
-        result = task_manager.mark_pending(task_id) 
-    if not result["success"]:
-        raise HTTPException(status_code=400, detail=result["message"])
-    return result
-
-@app.delete("/tasks/{task_id}") 
-def delete_task(task_id: int):
-    result = task_manager.delete_task(task_id)
-    if not result["success"]:
-        raise HTTPException(status_code=400, detail=result["message"])
-    return result
 
 # --- EVENTS ---
 @app.get("/events")

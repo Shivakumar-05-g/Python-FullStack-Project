@@ -12,30 +12,6 @@ key=os.getenv("SUPABASE_KEY")
 supabase=create_client(url, key)
 
 class DatabaseManager:
-	
-	#create task
-	def create_task(title, description, due_date, priority ,completed):
-		return supabase.table("Tasks").insert({
-		"title":title, 
-		"description":description, 
-		"due_date":due_date, 
-		"priority":priority, 
-		"completed":False
-		}).execute()
-		
-
-	#get all tasks
-	def get_all_tasks():
-		return supabase.table("Tasks").select("*").order("due_date").execute()
-
-	#update task status
-	def update_task(task_id, completed):
-		return supabase.table("Tasks").update({"completed":completed}).eq("id", task_id).execute()
-
-
-	#delete task
-	def delete_task(task_id):
-		return supabase.table("Tasks").delete().eq("id", task_id).execute()
 
 	#create events
 	def create_event(event_name, venue, date, total_seats, seats_available):
