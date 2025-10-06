@@ -3,7 +3,7 @@ import requests
 
 API_URL = "http://localhost:8000"
 
-st.set_page_config(page_title="Student Task & Event Manager", layout="centered")
+st.set_page_config(page_title="Ticket Booking System", layout="centered")
 
 def show_events():
     st.header("Available Events")
@@ -39,7 +39,11 @@ def create_event():
         if resp.status_code == 200:
             st.success("Event created successfully!")
         else:
-            st.error(resp.json().get("detail", "Error creating event."))
+            try:
+                error_detail = resp.json().get("detail", "Error creating event.")
+            except Exception:
+                error_detail = resp.text or "Error creating event."
+            st.error(error_detail)
 
 def book_event(event):
     st.header(f"Book Event: {event['event_name']}")

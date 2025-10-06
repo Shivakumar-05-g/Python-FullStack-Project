@@ -4,6 +4,8 @@ from src.db import DatabaseManager
     # EVENTS
     # ======================
 class EventManager:
+    def __init__(self):
+        self.db = DatabaseManager
 
     def add_event(self, event_name, venue, date, total_seats):
         '''
@@ -59,6 +61,8 @@ class EventManager:
     # BOOKINGS
     # ======================
 class BookingManager:
+    def __init__(self):
+        self.db = DatabaseManager
 
     def book_event(self, user_name, user_email, event_id, seats_booked):
         '''

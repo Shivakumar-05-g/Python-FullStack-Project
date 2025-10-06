@@ -7,7 +7,7 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from src.logic import  EventManager, BookingManager
 
-app = FastAPI(title="Student Task & Event Manager", version="1.0")
+app = FastAPI(title="Ticket Booking System", version="1.0")
 
 app.add_middleware(
     CORSMiddleware,
