@@ -1,7 +1,7 @@
-### E-Ticket Booking System
+### Ticket Booking System
 
 ### Description
-An E-Ticket Booking System is a software application that allows users to book tickets for events like concerts, movies, or sports matches online. Users can create accounts, browse available events, select seats, and make bookings from anywhere using their computer or phone. The system keeps track of available seats to avoid double bookings and generates digital tickets that users can use to enter the event. Payments can be handled securely online. This system makes ticket buying easy, fast, and paperless.
+An Ticket Booking System is a software application that allows users to book tickets for events like concerts, movies, or sports matches online. Users can create accounts, browse available events, select seats, and make bookings from anywhere using their computer or phone. The system keeps track of available seats to avoid double bookings and generates digital tickets that users can use to enter the event. Payments can be handled securely online. This system makes ticket buying easy, fast, and paperless.
 
 
 ## Features
@@ -16,8 +16,6 @@ An E-Ticket Booking System is a software application that allows users to book t
 
 - View Booking Details: Users can retrieve their booking details using their email or booking ID.
 
-- Basic Admin Controls: Admin can manage events and monitor the bookings made.
-
 - Prevent Double Booking: The system updates and checks seats_available to ensure no overbooking happens.
 
 - Simple and Lightweight: Focuses on essential functionality using just two tables to keep development straightforward.
@@ -25,7 +23,7 @@ An E-Ticket Booking System is a software application that allows users to book t
 ## Project Structure
 
 
-E-TicketBooking/
+TicketBooking/
 |
 |---src/            #core application logic
     |---logic.py    #Business logic and task
@@ -138,4 +136,3 @@ If you Encounter any Issues or have Questions:
 
 - **Phone Number**:`8185938735`
 - **Email**:`gorigeshivakumar8@gmail.com`
-
